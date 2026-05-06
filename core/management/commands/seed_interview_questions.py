@@ -1,10 +1,8 @@
 """
 Management command: seed_interview_questions
 ---------------------------------------------
-Populates the InterviewQuestion table with a rich set of
-Q&A pairs focused on Computer Science industrial attachment
-interviews in Zimbabwe, plus general, business, engineering
-and social-behavioural science questions.
+Populates InterviewGuard with a rich set of approved interview
+questions and approved CV builder recommendations.
 
 Usage:
     python manage.py seed_interview_questions           # insert only (skip duplicates)
@@ -12,7 +10,35 @@ Usage:
 """
 
 from django.core.management.base import BaseCommand
-from core.models import InterviewQuestion
+from core.models import CVBuilder, InterviewQuestion
+
+
+CV_BUILDERS = [
+    {
+        "name": "Zety",
+        "short_description": "Professional resume templates with guided writing help and examples.",
+        "link": "https://zety.com",
+        "order": 1,
+    },
+    {
+        "name": "Novoresume",
+        "short_description": "Clean, ATS-friendly CV layouts for students and early-career applicants.",
+        "link": "https://novoresume.com",
+        "order": 2,
+    },
+    {
+        "name": "Canva Resumes",
+        "short_description": "Visual resume templates that are easy to edit and export.",
+        "link": "https://canva.com/resumes",
+        "order": 3,
+    },
+    {
+        "name": "Reactive Resume",
+        "short_description": "Free, open-source resume builder with developer-friendly exports.",
+        "link": "https://rxresu.me",
+        "order": 4,
+    },
+]
 
 
 QUESTIONS = [
@@ -776,19 +802,24 @@ QUESTIONS = [
 
 
 class Command(BaseCommand):
-    help = "Seed the database with interview questions and answers."
+    help = "Seed the database with approved interview questions and CV builders."
 
     def add_arguments(self, parser):
         parser.add_argument(
             "--flush",
             action="store_true",
-            help="Delete all existing InterviewQuestion records before seeding.",
+            help="Delete all existing InterviewQuestion and CVBuilder records before seeding.",
         )
 
     def handle(self, *args, **options):
         if options["flush"]:
-            deleted, _ = InterviewQuestion.objects.all().delete()
-            self.stdout.write(self.style.WARNING(f"Deleted {deleted} existing questions."))
+            deleted_questions, _ = InterviewQuestion.objects.all().delete()
+            deleted_builders, _ = CVBuilder.objects.all().delete()
+            self.stdout.write(
+                self.style.WARNING(
+                    f"Deleted {deleted_questions} existing questions and {deleted_builders} existing CV builders."
+                )
+            )
 
         created = 0
         updated = 0
@@ -807,8 +838,26 @@ class Command(BaseCommand):
             else:
                 updated += 1
 
+        builder_created = 0
+        builder_updated = 0
+        for builder in CV_BUILDERS:
+            defaults = builder.copy()
+            defaults["status"] = "approved"
+            defaults.setdefault("submitted_by_name", "")
+            defaults.setdefault("submitted_by_email", "")
+            obj, was_created = CVBuilder.objects.update_or_create(
+                link=builder["link"],
+                defaults=defaults,
+            )
+            if was_created:
+                builder_created += 1
+            else:
+                builder_updated += 1
+
         self.stdout.write(
             self.style.SUCCESS(
-                f"Seeding complete. Created: {created} | Updated: {updated}"
+                "Seeding complete. "
+                f"Questions created: {created} | Questions updated: {updated} | "
+                f"CV builders created: {builder_created} | CV builders updated: {builder_updated}"
             )
         )

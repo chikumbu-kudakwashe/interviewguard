@@ -2,4 +2,4 @@ from core.management.commands.seed_interview_questions import Command as SeedInt
 
 
 class Command(SeedInterviewQuestionsCommand):
-    help = "Seed reusable InterviewGuard data, including approved interview questions."
+    help = "Seed reusable InterviewGuard data, including approved interview questions and CV builders."

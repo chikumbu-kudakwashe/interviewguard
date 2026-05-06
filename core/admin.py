@@ -1,11 +1,6 @@
 from django.contrib import admin
-from .models import Profile, InterviewQuestion
+from .models import CVBuilder, InterviewQuestion
 from django.utils import timezone
-
-@admin.register(Profile)
-class ProfileAdmin(admin.ModelAdmin):
-    list_display = ["full_name", "email", "phone", "created_at"]
-    search_fields = ["full_name", "email"]
 
 
 @admin.register(InterviewQuestion)
@@ -37,4 +32,32 @@ def approve_questions(modeladmin, request, queryset):
 
 @admin.action(description="Reject selected questions")
 def reject_questions(modeladmin, request, queryset):
+    queryset.exclude(status="approved").update(status="rejected", reviewed_at=timezone.now())
+
+
+@admin.register(CVBuilder)
+class CVBuilderAdmin(admin.ModelAdmin):
+    list_display = ["status", "name", "short_description", "link", "submitted_by_name", "order", "created_at"]
+    list_filter = ["status"]
+    search_fields = ["name", "short_description", "link", "submitted_by_name", "submitted_by_email"]
+    ordering = ["status", "order", "name"]
+    actions = ["approve_cv_builders", "reject_cv_builders"]
+    readonly_fields = ["created_at", "updated_at"]
+
+    @admin.action(description="Approve selected CV builders")
+    def approve_cv_builders(self, request, queryset):
+        queryset.update(status="approved", reviewed_at=timezone.now())
+
+    @admin.action(description="Reject selected CV builders")
+    def reject_cv_builders(self, request, queryset):
+        queryset.exclude(status="approved").update(status="rejected", reviewed_at=timezone.now())
+
+
+@admin.action(description="Approve selected CV builders")
+def approve_cv_builders(modeladmin, request, queryset):
+    queryset.update(status="approved", reviewed_at=timezone.now())
+
+
+@admin.action(description="Reject selected CV builders")
+def reject_cv_builders(modeladmin, request, queryset):
     queryset.exclude(status="approved").update(status="rejected", reviewed_at=timezone.now())

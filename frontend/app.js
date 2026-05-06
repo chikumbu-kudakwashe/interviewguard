@@ -36,7 +36,7 @@ const BASE = resolveApiBase();
             profile: JSON.parse(localStorage.getItem('ig_profile') || 'null'),
             setupData: JSON.parse(localStorage.getItem('ig_setup') || 'null'),
             allQuestions: [],
-            summary: null,
+            cvBuilders: [],
             selectedFaculty: 'all',
             selectedDiff: 'all',
             countdown: null,
@@ -56,10 +56,10 @@ const BASE = resolveApiBase();
             if (nav) nav.classList.add('active');
             state.activePage = page;
             if (page === 'prep' && state.allQuestions.length === 0) loadQuestions();
+            if (page === 'cv' && state.cvBuilders.length === 0) loadCVBuilders();
             if (page === 'profile') loadProfileUI();
             if (page === 'home') {
                 if (state.lastTest) updateHomeMetrics();
-                loadSummary();
             }
         }
 
@@ -347,39 +347,6 @@ const BASE = resolveApiBase();
             document.getElementById('home-ping').textContent = ping;
         }
 
-        async function loadSummary() {
-            const statusEl = document.getElementById('summaryStatus');
-            if (!statusEl) return;
-            statusEl.textContent = 'Loading dashboard summary…';
-            try {
-                const res = await fetch(`${BASE}/summary/`, { cache: 'no-store', mode: 'cors' });
-                if (!res.ok) throw new Error('summary unavailable');
-                state.summary = await res.json();
-                updateSummaryUI(state.summary);
-            } catch {
-                statusEl.textContent = 'Summary unavailable. Start the Django server and refresh.';
-                ['summaryApproved', 'summaryPending', 'summaryFaculties', 'summaryProfiles'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.textContent = '—';
-                });
-                document.getElementById('summaryFacultyList').innerHTML = '';
-            }
-        }
-
-        function updateSummaryUI(summary) {
-            const activeFaculties = (summary.faculties || []).filter(f => f.approved_count > 0);
-            document.getElementById('summaryStatus').textContent = 'Live from /api/summary/';
-            document.getElementById('summaryApproved').textContent = summary.questions?.approved ?? 0;
-            document.getElementById('summaryPending').textContent = summary.questions?.pending ?? 0;
-            document.getElementById('summaryFaculties').textContent = activeFaculties.length;
-            document.getElementById('summaryProfiles').textContent = summary.profiles?.total ?? 0;
-            document.getElementById('summaryFacultyList').innerHTML = activeFaculties.slice(0, 6).map(f => `
-                <button class="summary-chip" type="button" onclick="navigateTo('prep'); setFacultyByValue('${esc(f.faculty)}')">
-                    ${esc(f.faculty_label)} <span>${f.approved_count}</span>
-                </button>
-            `).join('') || '<span class="summary-empty">Seed questions to populate the bank.</span>';
-        }
-
         // ──────────────────────────────────────────────
         // GUARD
         // ──────────────────────────────────────────────
@@ -470,12 +437,15 @@ const BASE = resolveApiBase();
         }
 
         async function triggerApologyEmail() {
-            const profileKey = getServerProfileKey();
-            if (!profileKey) return;
+            if (!state.profile || !state.setupData?.email) return;
             try {
-                const res = await fetch(`${BASE}/profiles/${encodeURIComponent(profileKey)}/send_email/`, {
+                const res = await fetch(`${BASE}/alerts/email/`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: buildEmailBody(state.profile) }),
+                    body: JSON.stringify({
+                        to_email: state.setupData.email,
+                        reply_to: state.profile.email || '',
+                        message: buildEmailBody(state.profile),
+                    }),
                 });
                 if (res.ok) showToast('success', 'Apology Email Sent', `Sent to ${state.setupData?.email || 'interviewer'}.`);
                 else throw new Error();
@@ -485,12 +455,6 @@ const BASE = resolveApiBase();
         // ──────────────────────────────────────────────
         // PROFILE
         // ──────────────────────────────────────────────
-        function getServerProfileKey(profile = state.profile) {
-            const uuid = profile?.uuid || localStorage.getItem('ig_profile_uuid');
-            if (!uuid || String(uuid).startsWith('local-')) return null;
-            return uuid;
-        }
-
         function loadProfileUI() {
             const p = state.profile;
             if (!p) return;
@@ -504,7 +468,7 @@ const BASE = resolveApiBase();
             document.getElementById('profileBannerName').textContent = p.full_name || '—';
             document.getElementById('profileBannerEmail').textContent = p.email || '—';
             document.getElementById('profileAvatarLetter').textContent = (p.full_name || 'U')[0].toUpperCase();
-            document.getElementById('deleteZone').style.display = getServerProfileKey(p) ? 'block' : 'none';
+            document.getElementById('deleteZone').style.display = 'block';
             updateEmailPreview();
         }
 
@@ -519,44 +483,15 @@ const BASE = resolveApiBase();
             };
             if (!data.full_name || !data.email) { showToast('error', 'Missing Fields', 'Name and email are required.'); return; }
 
-            try {
-                const uuid = localStorage.getItem('ig_profile_uuid');
-                let res, json;
-                if (uuid && !uuid.startsWith('local-')) {
-                    res = await fetch(`${BASE}/profiles/${encodeURIComponent(uuid)}/`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-                    if (res.status === 404) {
-                        res = await fetch(`${BASE}/profiles/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-                    }
-                    json = await res.json();
-                } else {
-                    res = await fetch(`${BASE}/profiles/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-                    json = await res.json();
-                }
-                if (res.ok) {
-                    localStorage.setItem('ig_profile_uuid', json.uuid);
-                    localStorage.setItem('ig_profile', JSON.stringify(json));
-                    state.profile = json;
-                    showToast('success', 'Profile Saved', 'Stored locally and on server.');
-                    loadProfileUI();
-                } else throw new Error();
-            } catch {
-                const local = { ...data, uuid: localStorage.getItem('ig_profile_uuid') || ('local-' + Date.now()) };
-                localStorage.setItem('ig_profile', JSON.stringify(local));
-                localStorage.setItem('ig_profile_uuid', local.uuid);
-                state.profile = local;
-                showToast('warning', 'Saved Locally', 'Server offline — profile stored in browser only.');
-                loadProfileUI();
-            }
+            localStorage.setItem('ig_profile', JSON.stringify(data));
+            localStorage.removeItem('ig_profile_uuid');
+            state.profile = data;
+            showToast('success', 'Profile Saved', 'Stored in this browser only.');
+            loadProfileUI();
         }
 
         async function deleteProfile() {
             if (!confirm('Delete your profile? This cannot be undone.')) return;
-            const uuid = localStorage.getItem('ig_profile_uuid');
-            if (uuid && !uuid.startsWith('local-')) {
-                try {
-                    await fetch(`${BASE}/profiles/${encodeURIComponent(uuid)}/`, { method: 'DELETE' });
-                } catch { }
-            }
             localStorage.removeItem('ig_profile');
             localStorage.removeItem('ig_profile_uuid');
             state.profile = null;
@@ -665,6 +600,49 @@ ${p.full_name || '—'}`;
         }
 
         // ──────────────────────────────────────────────
+        // CV BUILDERS
+        // ──────────────────────────────────────────────
+        async function loadCVBuilders() {
+            const container = document.getElementById('cvBuildersContainer');
+            if (!container) return;
+            container.innerHTML = `<div class="empty-state compact"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><h3>Loading builders…</h3><p>Fetching approved recommendations.</p></div>`;
+            try {
+                const res = await fetch(`${BASE}/cv-builders/?page_size=50`);
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+                state.cvBuilders = data.results || data;
+                renderCVBuilders();
+            } catch {
+                container.innerHTML = `<div class="empty-state compact"><svg viewBox="0 0 24 24"><line x1="1" y1="1" x2="23" y2="23"/><circle cx="12" cy="12" r="10"/></svg><h3>Builders unavailable</h3><p>Start the Django server and refresh.</p></div>`;
+            }
+        }
+
+        function renderCVBuilders() {
+            const container = document.getElementById('cvBuildersContainer');
+            if (!container) return;
+            if (!state.cvBuilders.length) {
+                container.innerHTML = `<div class="empty-state compact"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><h3>No builders yet</h3><p>Seed approved builders or submit one for review.</p></div>`;
+                return;
+            }
+
+            container.innerHTML = state.cvBuilders.map(builder => {
+                const letter = (builder.icon_letter || builder.name || '?').trim().slice(0, 1).toUpperCase() || '?';
+                return `
+                <a href="${esc(builder.link)}" target="_blank" rel="noopener noreferrer" class="platform-link">
+                    <div class="flex-row">
+                        <div class="platform-icon platform-letter">${esc(letter)}</div>
+                        <div>
+                            <div class="pl-name">${esc(builder.name)}</div>
+                            <div class="pl-sub">${esc(builder.short_description)}</div>
+                        </div>
+                    </div>
+                    <div class="pl-arrow"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></div>
+                </a>
+                `;
+            }).join('');
+        }
+
+        // ──────────────────────────────────────────────
         // UTILS
         // ──────────────────────────────────────────────
         function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -697,6 +675,11 @@ ${p.full_name || '—'}`;
         document.getElementById('submitForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             await submitQuestion();
+        });
+
+        document.getElementById('builderSubmitForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await submitCVBuilder();
         });
 
         async function submitQuestion() {
@@ -744,7 +727,6 @@ ${p.full_name || '—'}`;
                     // Hide the form, show the pending confirmation
                     document.getElementById('submitForm').classList.add('hidden');
                     document.getElementById('submitSuccess').classList.remove('hidden');
-                    loadSummary();
                     showToast('success', 'Question Submitted', 'It will be reviewed before publishing.');
                 } else {
                     // Show field-level errors if DRF returns them
@@ -777,6 +759,83 @@ ${p.full_name || '—'}`;
                 btn?.setAttribute('aria-expanded', 'true');
                 section.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 setTimeout(() => document.getElementById('sub-faculty')?.focus(), 250);
+            } else {
+                section.classList.add('hidden');
+                btn?.setAttribute('aria-expanded', 'false');
+            }
+        }
+
+        async function submitCVBuilder() {
+            const btn = document.getElementById('builderSubmitBtn');
+            const data = {
+                name: document.getElementById('builder-name').value.trim(),
+                short_description: document.getElementById('builder-description').value.trim(),
+                link: document.getElementById('builder-link').value.trim(),
+                submitted_by_name: document.getElementById('builder-submitter-name').value.trim(),
+                submitted_by_email: document.getElementById('builder-submitter-email').value.trim(),
+            };
+
+            if (!data.name) {
+                showToast('error', 'Missing Field', 'Please enter the builder name.');
+                return;
+            }
+            if (data.short_description.length < 10) {
+                showToast('error', 'Missing Field', 'Please add a short useful description.');
+                return;
+            }
+            try {
+                const url = new URL(data.link);
+                if (!['http:', 'https:'].includes(url.protocol)) throw new Error();
+            } catch {
+                showToast('error', 'Invalid Link', 'Enter a full URL starting with http:// or https://.');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Submitting…';
+
+            try {
+                const res = await fetch(`${BASE}/cv-builders/submit/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                });
+                const json = await res.json().catch(() => ({}));
+
+                if (res.ok) {
+                    document.getElementById('builderSubmitForm').classList.add('hidden');
+                    document.getElementById('builderSubmitSuccess').classList.remove('hidden');
+                    showToast('success', 'Builder Submitted', 'It will be reviewed before publishing.');
+                } else {
+                    const errorMsg = typeof json === 'object'
+                        ? Object.entries(json).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`).join(' | ')
+                        : 'Submission failed.';
+                    showToast('error', 'Submission Error', errorMsg);
+                }
+            } catch {
+                showToast('error', 'Server Offline', 'Could not reach the server. Try again shortly.');
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Submit CV Builder';
+        }
+
+        function resetCVBuilderForm() {
+            document.getElementById('builderSubmitForm').reset();
+            document.getElementById('builderSubmitForm').classList.remove('hidden');
+            document.getElementById('builderSubmitSuccess').classList.add('hidden');
+            document.getElementById('builderSubmitBtn').disabled = false;
+            document.getElementById('builderSubmitBtn').textContent = 'Submit CV Builder';
+        }
+
+        function toggleCVBuilderForm() {
+            const section = document.getElementById('builder-submit-section');
+            const btn = document.getElementById('cvBuilderToggleBtn');
+            if (section.classList.contains('hidden')) {
+                section.classList.remove('hidden');
+                btn?.setAttribute('aria-expanded', 'true');
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                setTimeout(() => document.getElementById('builder-name')?.focus(), 250);
             } else {
                 section.classList.add('hidden');
                 btn?.setAttribute('aria-expanded', 'false');

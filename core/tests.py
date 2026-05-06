@@ -2,69 +2,42 @@ from django.core import mail
 from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 
-from .admin import approve_questions, reject_questions
-from .models import InterviewQuestion, Profile
+from .admin import approve_cv_builders, approve_questions, reject_cv_builders, reject_questions
+from .models import CVBuilder, InterviewQuestion
 
 
-class ProfileApiTests(TestCase):
+class AlertEmailApiTests(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.profile = Profile.objects.create(
-            full_name="Tariro Moyo",
-            email="tariro@example.com",
-            phone="+263771234567",
-            interviewer_email="recruiter@example.com",
-            interviewer_phone="",
-            bio="Computer Science attachment candidate.",
-            ip_address="127.0.0.1",
-        )
-
-    def test_profile_list_requires_uuid_filter(self):
-        response = self.client.get("/api/profiles/")
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["count"], 0)
-
-        response = self.client.get(f"/api/profiles/?uuid={self.profile.uuid}")
-
-        self.assertEqual(response.status_code, 200)
-        payload = response.json()
-        self.assertEqual(payload["count"], 1)
-        self.assertEqual(payload["results"][0]["uuid"], str(self.profile.uuid))
-
-    def test_profile_detail_uses_uuid(self):
-        response = self.client.patch(
-            f"/api/profiles/{self.profile.uuid}/",
-            {"phone": "+263779999999"},
-            format="json",
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.profile.refresh_from_db()
-        self.assertEqual(self.profile.phone, "+263779999999")
 
     @override_settings(
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
         DEFAULT_FROM_EMAIL="tests@example.com",
     )
-    def test_send_email_requires_message_and_sends_to_interviewer(self):
-        missing = self.client.post(
-            f"/api/profiles/{self.profile.uuid}/send_email/",
-            {},
-            format="json",
-        )
-        self.assertEqual(missing.status_code, 400)
-
+    def test_alert_email_endpoint_validates_and_sends_without_profile_storage(self):
         response = self.client.post(
-            f"/api/profiles/{self.profile.uuid}/send_email/",
-            {"message": "My connection dropped."},
+            "/api/alerts/email/",
+            {
+                "to_email": "recruiter@example.com",
+                "reply_to": "student@example.com",
+                "message": "My connection dropped during the interview. Please contact me by phone.",
+            },
             format="json",
         )
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].to, [self.profile.interviewer_email])
-        self.assertIn("My connection dropped.", mail.outbox[0].body)
+        self.assertEqual(mail.outbox[0].to, ["recruiter@example.com"])
+        self.assertEqual(mail.outbox[0].extra_headers["Reply-To"], "student@example.com")
+        self.assertIn("My connection dropped", mail.outbox[0].body)
+
+        missing = self.client.post("/api/alerts/email/", {}, format="json")
+        self.assertEqual(missing.status_code, 400)
+
+    def test_profile_api_and_summary_endpoint_are_removed(self):
+        self.assertEqual(self.client.get("/api/profiles/").status_code, 404)
+        self.assertEqual(self.client.get("/api/summary/").status_code, 404)
+        self.assertEqual(self.client.get("/api/summary").status_code, 404)
 
 
 class InterviewQuestionApiTests(TestCase):
@@ -75,7 +48,7 @@ class InterviewQuestionApiTests(TestCase):
                 faculty="computer_science",
                 difficulty="beginner",
                 question=f"Question {index}",
-                answer=f"Answer {index}",
+                answer=f"Answer {index} with enough detail for tests.",
                 order=index,
                 status="approved",
             )
@@ -83,7 +56,7 @@ class InterviewQuestionApiTests(TestCase):
             faculty="business",
             difficulty="beginner",
             question="Pending contribution?",
-            answer="Awaiting review.",
+            answer="Awaiting review with enough detail for validation.",
             status="pending",
         )
 
@@ -109,7 +82,7 @@ class InterviewQuestionApiTests(TestCase):
                 "faculty": "engineering",
                 "difficulty": "beginner",
                 "question": "How do you approach safety?",
-                "answer": "I identify hazards, follow procedure, and ask for supervision.",
+                "answer": "I identify hazards, follow procedure, and ask for supervision before continuing.",
                 "submitted_by_name": "Student",
                 "submitted_by_email": "student@example.com",
             },
@@ -120,28 +93,83 @@ class InterviewQuestionApiTests(TestCase):
         question = InterviewQuestion.objects.get(question="How do you approach safety?")
         self.assertEqual(question.status, "pending")
 
-    def test_summary_endpoint_returns_dashboard_counts_with_or_without_slash(self):
-        for path in ["/api/summary/", "/api/summary"]:
-            response = self.client.get(path)
+    def test_health_endpoint(self):
+        response = self.client.get("/api/health/")
 
-            self.assertEqual(response.status_code, 200)
-            payload = response.json()
-            self.assertEqual(payload["questions"]["approved"], 3)
-            self.assertEqual(payload["questions"]["pending"], 1)
-            self.assertIn("faculties", payload)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"status": "ok"})
 
 
-class AdminSubmissionActionTests(TestCase):
+class CVBuilderApiTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.approved = CVBuilder.objects.create(
+            name="Zety",
+            short_description="Professional templates and writing guidance.",
+            link="https://zety.com",
+            order=1,
+            status="approved",
+        )
+        self.pending = CVBuilder.objects.create(
+            name="Pending Builder",
+            short_description="Awaiting editorial review.",
+            link="https://pending-builder.example.com",
+            status="pending",
+        )
+
+    def test_cv_builders_endpoint_only_lists_approved_builders(self):
+        response = self.client.get("/api/cv-builders/?page_size=20")
+
+        self.assertEqual(response.status_code, 200)
+        builders = response.json()["results"]
+        self.assertEqual(len(builders), 1)
+        self.assertEqual(builders[0]["name"], self.approved.name)
+        self.assertEqual(builders[0]["icon_letter"], "Z")
+        self.assertNotIn(self.pending.name, [item["name"] for item in builders])
+
+    def test_submit_cv_builder_creates_pending_builder(self):
+        response = self.client.post(
+            "/api/cv-builders/submit/",
+            {
+                "name": "FlowCV",
+                "short_description": "Simple browser-based CV builder with clean exports.",
+                "link": "https://flowcv.com",
+                "submitted_by_name": "Student",
+                "submitted_by_email": "student@example.com",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        builder = CVBuilder.objects.get(name="FlowCV")
+        self.assertEqual(builder.status, "pending")
+        self.assertEqual(builder.submitted_by_email, "student@example.com")
+
+    def test_submit_cv_builder_rejects_duplicate_links(self):
+        response = self.client.post(
+            "/api/cv-builders/submit/",
+            {
+                "name": "Zety Duplicate",
+                "short_description": "Another submission for the same link.",
+                "link": "https://zety.com",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+
+class AdminQuestionActionTests(TestCase):
     def setUp(self):
         self.submission = InterviewQuestion.objects.create(
             faculty="computer_science",
             difficulty="beginner",
             question="What is Django?",
-            answer="A Python web framework.",
+            answer="A Python web framework for building web applications quickly.",
             status="pending",
         )
 
-    def test_approve_submission_does_not_duplicate_already_approved_items(self):
+    def test_approve_question_is_idempotent(self):
         queryset = InterviewQuestion.objects.filter(pk=self.submission.pk)
 
         approve_questions(None, None, queryset)
@@ -151,11 +179,40 @@ class AdminSubmissionActionTests(TestCase):
         self.assertEqual(self.submission.status, "approved")
         self.assertEqual(InterviewQuestion.objects.count(), 1)
 
-    def test_reject_submission_does_not_change_approved_items(self):
+    def test_reject_question_does_not_change_approved_items(self):
         queryset = InterviewQuestion.objects.filter(pk=self.submission.pk)
 
         approve_questions(None, None, queryset)
         reject_questions(None, None, queryset)
+
+        self.submission.refresh_from_db()
+        self.assertEqual(self.submission.status, "approved")
+
+
+class AdminCVBuilderActionTests(TestCase):
+    def setUp(self):
+        self.submission = CVBuilder.objects.create(
+            name="FlowCV",
+            short_description="Simple browser-based CV builder with clean exports.",
+            link="https://flowcv.com",
+            status="pending",
+        )
+
+    def test_approve_cv_builder_is_idempotent(self):
+        queryset = CVBuilder.objects.filter(pk=self.submission.pk)
+
+        approve_cv_builders(None, None, queryset)
+        approve_cv_builders(None, None, queryset)
+
+        self.submission.refresh_from_db()
+        self.assertEqual(self.submission.status, "approved")
+        self.assertEqual(CVBuilder.objects.count(), 1)
+
+    def test_reject_cv_builder_does_not_change_approved_items(self):
+        queryset = CVBuilder.objects.filter(pk=self.submission.pk)
+
+        approve_cv_builders(None, None, queryset)
+        reject_cv_builders(None, None, queryset)
 
         self.submission.refresh_from_db()
         self.assertEqual(self.submission.status, "approved")

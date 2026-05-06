@@ -1,7 +1,7 @@
 InterviewGuard
 ==============
 
-InterviewGuard is a lightweight Django + vanilla JavaScript app for interview preparation, profile-based emergency alerts, and simple browser network checks. It is designed to stay usable on modest internet connections: no frontend build step, no heavy JavaScript framework, and a small JSON API.
+InterviewGuard is a lightweight Django + vanilla JavaScript app for interview preparation, local-only profile-based emergency alerts, and simple browser network checks. It is designed to stay usable on modest internet connections: no frontend build step, no heavy JavaScript framework, and a small JSON API.
 
 Requirements
 ------------
@@ -25,7 +25,7 @@ uv run python manage.py migrate
 uv run python manage.py seed_data
 ```
 
-`seed_data` is safe to run multiple times. It uses the existing `InterviewQuestion` model and updates or creates approved seed questions without duplicating matching question text.
+`seed_data` is safe to run multiple times. It updates or creates approved seed questions and approved CV builder recommendations without duplicating matching question text or builder links.
 
 Run The Backend
 ---------------
@@ -54,15 +54,14 @@ API Endpoints
 -------------
 
 ```txt
-GET  /api/summary/
-GET  /api/summary
 GET  /api/questions/
 POST /api/questions/submit/
 GET  /api/questions/pending/   admin only
-GET  /api/profiles/
-POST /api/profiles/
-PATCH /api/profiles/<uuid>/
-POST /api/profiles/<uuid>/send_email/
+GET  /api/cv-builders/
+POST /api/cv-builders/submit/
+GET  /api/cv-builders/pending/   admin only
+POST /api/alerts/email/
+GET  /api/health/
 GET  /api/ping/
 GET  /api/download/?size=200000
 POST /api/upload/
@@ -79,16 +78,32 @@ InterviewGuard now uses one question model: `InterviewQuestion`.
 - Pending questions are not public until approved in Django admin.
 - Admins can approve or reject questions from `/admin/core/interviewquestion/`.
 
-Summary Endpoint
+CV Builder Review Flow
+----------------------
+
+Recommended CV builders use the `CVBuilder` model.
+
+- Seeded builders are saved with `status="approved"`.
+- Public `GET /api/cv-builders/` only returns approved builders.
+- User submissions go through `POST /api/cv-builders/submit/` and are saved with `status="pending"`.
+- Pending builders are not public until approved in Django admin.
+- Admins can approve or reject builders from `/admin/core/cvbuilder/`.
+
+Local Profile Data
+------------------
+
+The profile form is stored in browser `localStorage` only. There is no backend `Profile` model and no `/api/profiles/` endpoint. When Guard needs to send an apology email, the frontend posts the current email message to `POST /api/alerts/email/`; the server sends the email and stores nothing.
+
+Production Notes
 ----------------
 
-`GET /api/summary/` returns dashboard data:
-
-- total, approved, pending, and rejected question counts
-- saved profile count
-- approved counts by faculty
-- approved counts by difficulty
-- latest approved questions
+- Configure `DJANGO_SECRET_KEY` before setting `DEBUG=False`.
+- Configure `ALLOWED_HOSTS`, `CORS_ALLOWED_ORIGINS`, and `CSRF_TRUSTED_ORIGINS` for your real domain.
+- Configure `DEFAULT_FROM_EMAIL` and a real Django email backend for alert delivery.
+- Anonymous API requests are throttled with `DRF_ANON_THROTTLE_RATE` and default to `120/minute`.
+- Alert emails are throttled with `DRF_ALERT_EMAIL_THROTTLE_RATE` and default to `5/hour`.
+- Question submissions are throttled with `DRF_QUESTION_SUBMIT_THROTTLE_RATE` and default to `20/hour`.
+- CV builder submissions are throttled with `DRF_CV_BUILDER_SUBMIT_THROTTLE_RATE` and default to `20/hour`.
 
 Seed Data Sources
 -----------------

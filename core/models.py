@@ -1,25 +1,4 @@
 from django.db import models
-import uuid
-
-
-class Profile(models.Model):
-    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
-    full_name = models.CharField(max_length=255)
-    email = models.EmailField()
-    phone = models.CharField(max_length=20)
-
-    interviewer_email = models.EmailField()
-    interviewer_phone = models.CharField(max_length=20, blank=True)
-
-    bio = models.TextField()
-    cv = models.FileField(upload_to="cvs/", blank=True, null=True)
-
-    ip_address = models.CharField(max_length=255, blank=True, null=True)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.full_name
 
 
 class InterviewQuestion(models.Model):
@@ -65,6 +44,40 @@ class InterviewQuestion(models.Model):
 
     class Meta:
         ordering = ["faculty", "order", "difficulty", "id"]
+        indexes = [
+            models.Index(fields=["status", "faculty", "difficulty"]),
+            models.Index(fields=["status", "created_at"]),
+        ]
 
     def __str__(self):
         return f"[{self.get_status_display()}] [{self.get_faculty_display()}] {self.question[:80]}"
+
+
+class CVBuilder(models.Model):
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("approved", "Approved"),
+        ("rejected", "Rejected"),
+    ]
+
+    name = models.CharField(max_length=120)
+    short_description = models.CharField(max_length=240)
+    link = models.URLField(max_length=500, unique=True)
+    order = models.PositiveIntegerField(default=0)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    submitted_by_name = models.CharField(max_length=255, blank=True)
+    submitted_by_email = models.EmailField(blank=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewer_note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order", "name", "id"]
+        indexes = [
+            models.Index(fields=["status", "order", "name"]),
+            models.Index(fields=["status", "created_at"]),
+        ]
+
+    def __str__(self):
+        return f"[{self.get_status_display()}] {self.name}"
