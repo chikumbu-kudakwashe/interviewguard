@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>InterviewGuard — Ace the Interview, Whatever the Signal</title>
+    <meta name="description" content="InterviewGuard helps you prepare for interviews, craft your perfect CV, and monitor your network signal for seamless video calls." />
+    <meta name="keywords" content="interview preparation, CV builder, network monitor, interview questions" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet" />
+        <link rel="stylesheet" href="styles.css">
+    
+</head>
+
+<body>
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+        <div class="topbar-brand" style="cursor:pointer" onclick="navigateTo('home')">
+            <div class="brand-mark">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.5 5.25-1.35 9-6.25 9-11.5V7z" />
+                </svg>
+            </div>
+            <span class="brand-name">InterviewGuard</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+            <button class="guard-chip off" id="guardChip" onclick="navigateTo('setup')">
+                <div class="dot"></div>
+                <span id="guardChipText">Inactive</span>
+            </button>
+            <button class="avatar-btn" onclick="navigateTo('profile')">
+                <svg viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- GUARD BANNER -->
+    <div id="guard-banner">
+        <div class="banner-inner" id="bannerInner">
+            <div class="banner-dot"></div>
+            <span class="banner-text" id="bannerMsg">Guard active — monitoring your connection</span>
+            <button class="banner-close" onclick="hideBanner()">✕</button>
+        </div>
+    </div>
+
+    <!-- SHELL -->
+    <div class="shell" id="shell">
+
+        <!-- ── HOME ── -->
+        <div class="page active" id="page-home">
+            <div class="page-scroll">
+                <div class="hero">
+                    <div class="hero-noise"></div>
+                    <div class="hero-eyebrow">🇿🇼 For Attachment Students · Zimbabwe</div>
+                    <h1 class="hero-title">Don't let the network end your interview.</h1>
+                    <div class="hero-body">Test your connection, get a real-time risk score, and auto-alert your
+                        interviewer if things go wrong.</div>
+                    <button class="hero-cta" onclick="navigateTo('test')">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                        </svg>
+                        Test my connection
+                    </button>
+                </div>
+
+                <div class="sp-md"></div>
+                <div class="section-label">Quick Access</div>
+                <div class="quick-grid">
+                    <div class="quick-card" onclick="navigateTo('test')">
+                        <div class="quick-icon qi-brand">
+                            <svg viewBox="0 0 24 24">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="quick-name">Network Test</div>
+                            <div class="quick-desc">Speed & interview probability</div>
+                        </div>
+                    </div>
+                    <div class="quick-card" onclick="navigateTo('setup')">
+                        <div class="quick-icon qi-amber">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.5 5.25-1.35 9-6.25 9-11.5V7z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="quick-name">Setup Guard</div>
+                            <div class="quick-desc">Alerts & apology email</div>
+                        </div>
+                    </div>
+                    <div class="quick-card" onclick="navigateTo('prep')">
+                        <div class="quick-icon qi-green">
+                            <svg viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                                <line x1="12" y1="17" x2="12.01" y2="17" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="quick-name">Interview Prep</div>
+                            <div class="quick-desc">CS, Business & more</div>
+                        </div>
+                    </div>
+                    <div class="quick-card" onclick="navigateTo('cv')">
+                        <div class="quick-icon qi-neutral">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <polyline points="14 2 14 8 20 8" />
+                                <line x1="16" y1="13" x2="8" y2="13" />
+                                <line x1="16" y1="17" x2="8" y2="17" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="quick-name">CV Builder</div>
+                            <div class="quick-desc">Generate or browse tools</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sp-md"></div>
+                <div class="section-label">Question Bank Summary</div>
+                <div class="summary-panel">
+                    <div class="summary-status" id="summaryStatus">Loading dashboard summary…</div>
+                    <div class="summary-grid">
+                        <div class="summary-tile">
+                            <div class="summary-value" id="summaryApproved">—</div>
+                            <div class="summary-label">Approved Questions</div>
+                        </div>
+                        <div class="summary-tile">
+                            <div class="summary-value" id="summaryPending">—</div>
+                            <div class="summary-label">Pending Review</div>
+                        </div>
+                        <div class="summary-tile">
+                            <div class="summary-value" id="summaryFaculties">—</div>
+                            <div class="summary-label">Active Faculties</div>
+                        </div>
+                        <div class="summary-tile">
+                            <div class="summary-value" id="summaryProfiles">—</div>
+                            <div class="summary-label">Saved Profiles</div>
+                        </div>
+                    </div>
+                    <div class="summary-faculties" id="summaryFacultyList"></div>
+                </div>
+
+                <div class="sp-md"></div>
+                <div class="section-label">Last Network Snapshot</div>
+                <div class="snapshot">
+                    <div class="snapshot-header">
+                        <div class="flex-row">
+                            <svg viewBox="0 0 24 24"
+                                style="width:15px;height:15px;stroke:var(--ink-3);fill:none;stroke-width:2;stroke-linecap:round">
+                                <path d="M5 12.55a11 11 0 0 1 14.08 0" />
+                                <path d="M1.42 9a16 16 0 0 1 21.16 0" />
+                                <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+                                <line x1="12" y1="20" x2="12.01" y2="20" />
+                            </svg>
+                            <span>Connection Summary</span>
+                        </div>
+                        <button class="btn btn-ghost btn-sm" onclick="navigateTo('test')">Re-test</button>
+                    </div>
+                    <div class="metrics-3">
+                        <div class="met">
+                            <div class="met-val" id="home-dl">—</div>
+                            <div class="met-unit">Mbps</div>
+                            <div class="met-label">Download</div>
+                        </div>
+                        <div class="met">
+                            <div class="met-val" id="home-ul">—</div>
+                            <div class="met-unit">Mbps</div>
+                            <div class="met-label">Upload</div>
+                        </div>
+                        <div class="met">
+                            <div class="met-val" id="home-ping">—</div>
+                            <div class="met-unit">ms</div>
+                            <div class="met-label">Latency</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sp-md"></div>
+                <div class="tip-card">
+                    <div class="tip-header">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                        <span>Pro tip for Zimbabwe connections</span>
+                    </div>
+                    <div class="tip-body">Move closer to your router, close WhatsApp and YouTube before the interview,
+                        and do a test run 30 minutes before.</div>
+                </div>
+                <div class="sp-lg"></div>
+            </div>
+        </div>
+
+        <!-- ── TEST ── -->
+        <div class="page" id="page-test">
+            <div class="page-scroll">
+                <div class="page-title">Network Diagnosis</div>
+                <div class="page-sub">Real download &amp; upload speeds measured in your browser.</div>
+                <div class="sp-md"></div>
+
+                <div class="form-group">
+                    <label class="form-label">Interview Platform</label>
+                    <select class="form-select" id="platformSelect">
+                        <option value="zoom">Zoom</option>
+                        <option value="teams">Microsoft Teams</option>
+                        <option value="meet">Google Meet</option>
+                        <option value="webex">Cisco Webex</option>
+                        <option value="whatsapp">WhatsApp Video</option>
+                    </select>
+                </div>
+
+                <div class="test-card">
+                    <div class="section-label" style="margin-bottom:0">Success Probability</div>
+                    <div class="prob-ring-wrap" style="margin:18px auto">
+                        <svg viewBox="0 0 120 120">
+                            <circle cx="60" cy="60" r="50" class="prob-track" stroke-dasharray="314 314" />
+                            <circle cx="60" cy="60" r="50" class="prob-arc" id="probArc" stroke-dasharray="0 314"
+                                transform="rotate(-90 60 60)" />
+                        </svg>
+                        <div class="prob-center">
+                            <div class="prob-pct" id="probPct">—</div>
+                            <div class="prob-sub" id="probLabel">Run test first</div>
+                        </div>
+                    </div>
+                    <div class="insight" id="insightBox">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                        <p id="insightText">Run the test to see how ready your connection is for your interview
+                            platform.</p>
+                    </div>
+                </div>
+
+                <div class="sp-sm"></div>
+                <div class="metrics-2">
+                    <div class="metric-tile">
+                        <div class="mt-head"><svg viewBox="0 0 24 24">
+                                <polyline points="8 17 12 21 16 17" />
+                                <line x1="12" y1="12" x2="12" y2="21" />
+                                <path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29" />
+                            </svg><span>Download</span></div>
+                        <div><span class="mt-val" id="dlVal">—</span><span class="mt-unit"> Mbps</span></div>
+                        <div class="badge b-neutral" id="dlBadge">Pending</div>
+                    </div>
+                    <div class="metric-tile">
+                        <div class="mt-head"><svg viewBox="0 0 24 24">
+                                <polyline points="16 16 12 12 8 16" />
+                                <line x1="12" y1="12" x2="12" y2="21" />
+                                <path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29" />
+                            </svg><span>Upload</span></div>
+                        <div><span class="mt-val" id="ulVal">—</span><span class="mt-unit"> Mbps</span></div>
+                        <div class="badge b-neutral" id="ulBadge">Pending</div>
+                    </div>
+                </div>
+
+                <div class="sp-sm"></div>
+                <div class="latency-row">
+                    <div class="lat-icon"><svg viewBox="0 0 24 24">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                        </svg></div>
+                    <div style="flex:1">
+                        <div
+                            style="font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)">
+                            Latency (Ping)</div>
+                        <div style="margin-top:5px"><span class="mt-val" id="pingVal"
+                                style="font-size:24px">—</span><span class="mt-unit"> ms</span></div>
+                    </div>
+                    <div class="badge b-neutral" id="pingBadge">Pending</div>
+                </div>
+
+                <div class="sp-sm"></div>
+                <div class="stab-wrap">
+                    <div class="stab-label-row">
+                        <span class="text-xs text-muted"
+                            style="font-weight:700;text-transform:uppercase;letter-spacing:.06em">Stability</span>
+                        <span class="text-xs text-muted" id="stabilityPct">—</span>
+                    </div>
+                    <div class="stab-bar-bg">
+                        <div class="stab-bar-fill" id="stabilityBar" style="width:0%"></div>
+                    </div>
+                </div>
+
+                <div class="sp-md"></div>
+                <button class="btn btn-primary" id="testBtn" onclick="runSpeedTest()">
+                    <svg viewBox="0 0 24 24">
+                        <polygon points="5 3 19 12 5 21 5 3" />
+                    </svg>
+                    <span id="testBtnText">Start Test</span>
+                </button>
+
+                <div class="sp-sm"></div>
+                <p class="text-xs text-muted" style="text-align:center">Uses real HTTP transfer measurement for accurate
+                    results.</p>
+                <div class="sp-lg"></div>
+            </div>
+        </div>
+
+        <!-- ── SETUP ── -->
+        <div class="page" id="page-setup">
+            <div class="page-scroll">
+                <div class="page-title">Setup Guard</div>
+                <div class="page-sub">Configure interview details and automated fail-safes.</div>
+                <div class="sp-md"></div>
+
+                <div class="section-label">Interview Details</div>
+                <div class="card">
+                    <div class="form-group">
+                        <label class="form-label">Interviewer / Company Name</label>
+                        <input class="form-input" id="s-company" type="text"
+                            placeholder="e.g. Econet Wireless Zimbabwe" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Interviewer Email</label>
+                        <input class="form-input" id="s-email" type="email" placeholder="recruiter@company.co.zw" />
+                    </div>
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Date &amp; Time</label>
+                            <input class="form-input" id="s-datetime" type="datetime-local" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Platform</label>
+                            <select class="form-select" id="s-platform">
+                                <option value="">Select…</option>
+                                <option value="zoom">Zoom</option>
+                                <option value="teams">MS Teams</option>
+                                <option value="meet">Google Meet</option>
+                                <option value="webex">Webex</option>
+                                <option value="whatsapp">WhatsApp</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sp-sm"></div>
+                <div class="section-label">Monitoring Options</div>
+                <div class="toggle-row">
+                    <div>
+                        <div class="toggle-label">Network Monitoring</div>
+                        <div class="toggle-desc">Auto-send apology email when connection drops for 15+ seconds.</div>
+                    </div>
+                    <button class="toggle on" id="toggle-monitor" onclick="this.classList.toggle('on')"></button>
+                </div>
+                <div class="toggle-row">
+                    <div>
+                        <div class="toggle-label">Browser Notifications</div>
+                        <div class="toggle-desc">Get pop-up alerts even when the app is in the background.</div>
+                    </div>
+                    <button class="toggle on" id="toggle-notif" onclick="toggleNotifications(this)"></button>
+                </div>
+                <div class="toggle-row">
+                    <div>
+                        <div class="toggle-label">10-Minute Countdown</div>
+                        <div class="toggle-desc">Notify 10 minutes before your interview starts.</div>
+                    </div>
+                    <button class="toggle on" id="toggle-countdown" onclick="this.classList.toggle('on')"></button>
+                </div>
+
+                <div class="sp-md"></div>
+                <div class="section-label">Apology Email Preview</div>
+                <div class="email-preview">
+                    <div class="ep-toolbar">
+                        <div class="ep-dot" style="background:#fc6058"></div>
+                        <div class="ep-dot" style="background:#febc2e"></div>
+                        <div class="ep-dot" style="background:#34c749"></div>
+                        <span style="font-size:12px;color:var(--ink-3);margin-left:8px;font-weight:500">Auto-generated
+                            apology</span>
+                    </div>
+                    <div class="ep-body" id="emailPreviewBody">Fill in your profile to preview the apology email.</div>
+                </div>
+
+                <div class="sp-md"></div>
+                <button class="btn btn-primary" id="activateBtn" onclick="activateGuard()">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.5 5.25-1.35 9-6.25 9-11.5V7z" />
+                    </svg>
+                    Activate Interview Guard
+                </button>
+                <p class="text-xs text-muted" style="text-align:center;margin-top:10px;line-height:1.5">Keep this page
+                    open in the background. Guard monitors in real-time.</p>
+                <div class="sp-lg"></div>
+            </div>
+        </div>
+
+        <!-- ── PROFILE ── -->
+        <div class="page" id="page-profile">
+            <div class="page-scroll">
+                <div class="page-title">Your Profile</div>
+                <div class="page-sub">Stored in your browser only. Used to personalise alerts &amp; emails.</div>
+                <div class="sp-md"></div>
+
+                <div id="profileBanner" style="display:none;margin-bottom:16px">
+                    <div class="profile-banner">
+                        <div class="profile-avatar" id="profileAvatarLetter">T</div>
+                        <div>
+                            <div style="font-weight:700;font-size:16px;font-family:var(--font-display)"
+                                id="profileBannerName">—</div>
+                            <div class="text-sm text-muted" id="profileBannerEmail">—</div>
+                            <div class="sp-sm"></div>
+                            <div class="pill-tag">
+                                <svg viewBox="0 0 24 24">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                                Profile Active
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-label">Personal Details</div>
+                <div class="card">
+                    <div class="form-group"><label class="form-label">Full Name</label><input class="form-input"
+                            id="p-name" type="text" placeholder="e.g. Tinashe Moyo" /></div>
+                    <div class="form-group"><label class="form-label">Your Email</label><input class="form-input"
+                            id="p-email" type="email" placeholder="you@example.com" /></div>
+                    <div class="form-group"><label class="form-label">Phone / WhatsApp</label><input class="form-input"
+                            id="p-phone" type="tel" placeholder="+263 77 123 4567" /></div>
+                    <div class="form-group" style="margin-bottom:0"><label class="form-label">Short Bio</label><textarea
+                            class="form-textarea" id="p-bio"
+                            placeholder="3rd year Computer Science student at UZ, passionate about software development…"></textarea>
+                    </div>
+                </div>
+
+                <div class="sp-sm"></div>
+                <div class="section-label">Interviewer Details</div>
+                <div class="card">
+                    <div class="form-group"><label class="form-label">Interviewer Email</label><input class="form-input"
+                            id="p-int-email" type="email" placeholder="hr@company.co.zw" /></div>
+                    <div class="form-group" style="margin-bottom:0"><label class="form-label">Interviewer Phone
+                            (optional)</label><input class="form-input" id="p-int-phone" type="tel"
+                            placeholder="+263 77 000 0000" /></div>
+                </div>
+
+                <div class="sp-md"></div>
+                <button class="btn btn-primary" onclick="saveProfile()">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                        <polyline points="17 21 17 13 7 13 7 21" />
+                        <polyline points="7 3 7 8 15 8" />
+                    </svg>
+                    Save Profile
+                </button>
+                <p class="text-xs text-muted" style="text-align:center;margin-top:8px">Stored in your browser only.
+                    Never shared without your action.</p>
+
+                <div class="danger-zone" id="deleteZone" style="display:none;margin-top:20px">
+                    <div class="danger-zone-header">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                            <line x1="12" y1="9" x2="12" y2="13" />
+                            <line x1="12" y1="17" x2="12.01" y2="17" />
+                        </svg>
+                        <span>Danger Zone</span>
+                    </div>
+                    <p class="text-sm text-muted" style="margin-bottom:12px;line-height:1.5">Permanently delete your
+                        profile from the server and clear all local data. This cannot be undone.</p>
+                    <button class="btn btn-danger btn-sm" style="width:auto" onclick="deleteProfile()">
+                        <svg viewBox="0 0 24 24"
+                            style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                        </svg>
+                        Delete My Profile
+                    </button>
+                </div>
+                <div class="sp-lg"></div>
+            </div>
+        </div>
+
+        <!-- ── PREP ── -->
+        <div class="page" id="page-prep">
+            <div class="page-scroll">
+                <div class="page-title">Interview Prep</div>
+                
+                <div class="page-sub">Master your discipline. Focused on Zim industrial attachment.</div>
+
+                <div class="hero">
+                    <div class="hero-noise"></div>
+                    <h1 class="hero-title">Contribute to the Bank</h1>
+                    <div class="hero-body">Share interview questions you've faced and help others prepare.</div>
+                    <button class="hero-cta" id="submitToggleBtn" type="button" aria-expanded="false" onclick="toggleSubmitForm()">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                        </svg>
+                        Submit a Question
+                    </button>
+                </div>
+
+                <div class="sp-md"></div>
+
+                <div class="search-bar">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <input type="text" id="qSearchInput" placeholder="Search questions or topics…"
+                        oninput="filterQuestions()" />
+                </div>
+
+                <div class="sp-sm"></div>
+                <div class="filter-row" id="facultyFilter">
+                    <button class="chip chip-fill" data-faculty="all" onclick="setFaculty(this,'all')">All</button>
+                    <button class="chip chip-out" data-faculty="computer_science"
+                        onclick="setFaculty(this,'computer_science')">💻 Computer Science</button>
+                    <button class="chip chip-out" data-faculty="general" onclick="setFaculty(this,'general')">🎯
+                        General</button>
+                    <button class="chip chip-out" data-faculty="engineering" onclick="setFaculty(this,'engineering')">⚙️
+                        Engineering</button>
+                    <button class="chip chip-out" data-faculty="business" onclick="setFaculty(this,'business')">📊
+                        Business</button>
+                    <button class="chip chip-out" data-faculty="social_behavioural"
+                        onclick="setFaculty(this,'social_behavioural')">🧠 Social Science</button>
+                    <button class="chip chip-out" data-faculty="medicine" onclick="setFaculty(this,'medicine')">🩺 Medicine</button>
+                    <button class="chip chip-out" data-faculty="law" onclick="setFaculty(this,'law')">⚖️ Law</button>
+                    <button class="chip chip-out" data-faculty="arts" onclick="setFaculty(this,'arts')">🎨 Arts</button>
+                    <button class="chip chip-out" data-faculty="natural_sciences" onclick="setFaculty(this,'natural_sciences')">🔬 Sciences</button>
+                    <button class="chip chip-out" data-faculty="education" onclick="setFaculty(this,'education')">📚 Education</button>
+                </div>
+
+                <div class="sp-sm"></div>
+                <div class="filter-row" id="diffFilter">
+                    <button class="chip chip-fill" data-diff="all" onclick="setDiff(this,'all')">All Levels</button>
+                    <button class="chip chip-out" data-diff="beginner"
+                        onclick="setDiff(this,'beginner')">Beginner</button>
+                    <button class="chip chip-out" data-diff="intermediate"
+                        onclick="setDiff(this,'intermediate')">Intermediate</button>
+                    <button class="chip chip-out" data-diff="advanced"
+                        onclick="setDiff(this,'advanced')">Advanced</button>
+                </div>
+
+                <div class="sp-md"></div>
+                <div class="q-count-row">
+                    <div class="q-count-title" id="prepSectionLabel">All Questions</div>
+                    <div class="q-count-tag" id="qCount">— Questions</div>
+                </div>
+
+                <div id="qaContainer">
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
+                        </svg>
+                        <h3>Loading questions…</h3>
+                        <p>Make sure the Django server is running.</p>
+                    </div>
+                </div>
+                <div class="sp-lg"></div>
+
+                <!-- Submit Question Form -->
+                <section id="submit-section" class="hidden">
+                  <h2>Submit an Interview Question</h2>
+                  <p class="submit-intro">
+                    Help grow the InterviewGuard question bank. Your submission will be
+                    reviewed by our team before being published.
+                  </p>
+
+                  <form id="submitForm" novalidate>
+
+                    <div class="form-row">
+                      <label for="sub-faculty">Faculty *</label>
+                      <select id="sub-faculty" required>
+                        <option value="">— Select Faculty —</option>
+                        <option value="computer_science">Computer Science</option>
+                        <option value="engineering">Engineering</option>
+                        <option value="business">Business</option>
+                        <option value="social_behavioural">Social &amp; Behavioural Science</option>
+                        <option value="medicine">Medicine &amp; Health Sciences</option>
+                        <option value="law">Law</option>
+                        <option value="arts">Arts &amp; Humanities</option>
+                        <option value="natural_sciences">Natural Sciences</option>
+                        <option value="education">Education</option>
+                        <option value="general">General / All Faculties</option>
+                      </select>
+                    </div>
+
+                    <div class="form-row">
+                      <label for="sub-difficulty">Difficulty *</label>
+                      <select id="sub-difficulty" required>
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                      </select>
+                    </div>
+
+                    <div class="form-row">
+                      <label for="sub-question">Interview Question *</label>
+                      <textarea id="sub-question" rows="3" placeholder="Write the interview question here…" required></textarea>
+                    </div>
+
+                    <div class="form-row">
+                      <label for="sub-answer">Model Answer *</label>
+                      <textarea id="sub-answer" rows="5" placeholder="Provide a thorough model answer…" required></textarea>
+                    </div>
+
+                    <div class="form-row">
+                      <label for="sub-tip">Interviewer Tip <span class="optional">(optional)</span></label>
+                      <textarea id="sub-tip" rows="2" placeholder="What is the interviewer really looking for?"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                      <label for="sub-tags">Tags <span class="optional">(optional, comma-separated)</span></label>
+                      <input type="text" id="sub-tags" placeholder="e.g. Django, REST, OOP">
+                    </div>
+
+                    <div class="form-row">
+                      <label for="sub-name">Your Name <span class="optional">(optional)</span></label>
+                      <input type="text" id="sub-name" placeholder="e.g. Tarisai Moyo">
+                    </div>
+
+                    <div class="form-row">
+                      <label for="sub-email">Your Email <span class="optional">(optional)</span></label>
+                      <input type="email" id="sub-email" placeholder="We'll notify you when it's approved">
+                    </div>
+
+                    <button type="submit" id="submitBtn">Submit Question</button>
+
+                  </form>
+
+                  <!-- Shown AFTER successful submission — hidden by default -->
+                  <div id="submitSuccess" class="submit-success hidden">
+                    <div class="success-icon">✅</div>
+                    <h3>Submission Received!</h3>
+                    <p>
+                      Thank you for contributing to InterviewGuard.<br>
+                      Your question is now <strong>pending review</strong> by our team.
+                    </p>
+                    <p class="success-sub">
+                      Once approved, it will appear in the preparation section for all users.
+                      This process typically takes 1–3 business days.
+                    </p>
+                    <button onclick="resetSubmitForm()">Submit Another</button>
+                  </div>
+
+                </section>
+
+            </div>
+        </div>
+
+        <!-- ── CV ── -->
+        <div class="page" id="page-cv">
+            <div class="page-scroll">
+                <div class="cv-hero">
+                    <div class="cv-hero-bg"></div>
+                    <span class="cv-hero-icon">✦</span>
+                    <h2 class="cv-hero-title">Craft Your Perfect CV</h2>
+                    <div class="cv-hero-sub">AI-powered suggestions tailored for CS attachment roles in Zimbabwe.</div>
+                    <button class="cv-btn"
+                        onclick="showToast('info','AI CV Builder','Coming soon — connect your profile first.')">
+                        <svg viewBox="0 0 24 24">
+                            <polygon
+                                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                        </svg>
+                        Generate CV with AI
+                    </button>
+                </div>
+
+                <div class="sp-md"></div>
+                <div class="section-label">What to Include</div>
+                <div class="card">
+                    <p class="text-sm text-muted" style="line-height:1.75">For a CS attachment CV in Zimbabwe, always
+                        include: <strong>personal details</strong>, <strong>academic record</strong>, a <strong>skills
+                            section</strong> listing languages &amp; tools, <strong>projects</strong> with GitHub links,
+                        <strong>references</strong> from a lecturer, and a short <strong>objective statement</strong>
+                        mentioning the specific company.</p>
+                </div>
+
+                <div class="sp-md"></div>
+                <div class="section-label">Recommended Builders</div>
+
+                <a href="https://zety.com" target="_blank" class="platform-link">
+                    <div class="flex-row">
+                        <div class="platform-icon"><svg viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <polyline points="14 2 14 8 20 8" />
+                            </svg></div>
+                        <div>
+                            <div class="pl-name">Zety</div>
+                            <div class="pl-sub">Professional templates &amp; expert guidance</div>
+                        </div>
+                    </div>
+                    <div class="pl-arrow"><svg viewBox="0 0 24 24">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                            <polyline points="15 3 21 3 21 9" />
+                            <line x1="10" y1="14" x2="21" y2="3" />
+                        </svg></div>
+                </a>
+                <a href="https://novoresume.com" target="_blank" class="platform-link">
+                    <div class="flex-row">
+                        <div class="platform-icon"><svg viewBox="0 0 24 24">
+                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                            </svg></div>
+                        <div>
+                            <div class="pl-name">Novoresume</div>
+                            <div class="pl-sub">Sleek, ATS-friendly layouts</div>
+                        </div>
+                    </div>
+                    <div class="pl-arrow"><svg viewBox="0 0 24 24">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                            <polyline points="15 3 21 3 21 9" />
+                            <line x1="10" y1="14" x2="21" y2="3" />
+                        </svg></div>
+                </a>
+                <a href="https://canva.com/resumes" target="_blank" class="platform-link">
+                    <div class="flex-row">
+                        <div class="platform-icon"><svg viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                                <line x1="9" y1="9" x2="9.01" y2="9" />
+                                <line x1="15" y1="9" x2="15.01" y2="9" />
+                            </svg></div>
+                        <div>
+                            <div class="pl-name">Canva</div>
+                            <div class="pl-sub">Creative &amp; visual designs</div>
+                        </div>
+                    </div>
+                    <div class="pl-arrow"><svg viewBox="0 0 24 24">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                            <polyline points="15 3 21 3 21 9" />
+                            <line x1="10" y1="14" x2="21" y2="3" />
+                        </svg></div>
+                </a>
+                <a href="https://rxresu.me" target="_blank" class="platform-link">
+                    <div class="flex-row">
+                        <div class="platform-icon"><svg viewBox="0 0 24 24">
+                                <polyline points="16 18 22 12 16 6" />
+                                <polyline points="8 6 2 12 8 18" />
+                            </svg></div>
+                        <div>
+                            <div class="pl-name">Reactive Resume</div>
+                            <div class="pl-sub">Free, open-source, developer-friendly</div>
+                        </div>
+                    </div>
+                    <div class="pl-arrow"><svg viewBox="0 0 24 24">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                            <polyline points="15 3 21 3 21 9" />
+                            <line x1="10" y1="14" x2="21" y2="3" />
+                        </svg></div>
+                </a>
+                <div class="sp-lg"></div>
+            </div>
+        </div>
+
+    </div><!-- /shell -->
+
+    <!-- BOTTOM NAV -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" id="nav-home" onclick="navigateTo('home')">
+            <svg viewBox="0 0 24 24">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+            <span class="nav-label">Home</span>
+        </button>
+        <button class="nav-item" id="nav-test" onclick="navigateTo('test')">
+            <svg viewBox="0 0 24 24">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+            </svg>
+            <span class="nav-label">Test</span>
+        </button>
+        <button class="nav-item" id="nav-setup" onclick="navigateTo('setup')">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.5 5.25-1.35 9-6.25 9-11.5V7z" />
+            </svg>
+            <span class="nav-label">Guard</span>
+        </button>
+        <button class="nav-item" id="nav-prep" onclick="navigateTo('prep')">
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            <span class="nav-label">Prep</span>
+        </button>
+        <button class="nav-item" id="nav-cv" onclick="navigateTo('cv')">
+            <svg viewBox="0 0 24 24">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+            </svg>
+            <span class="nav-label">CV</span>
+        </button>
+    </nav>
+
+    <div id="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
