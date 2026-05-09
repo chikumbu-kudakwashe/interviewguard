@@ -5,12 +5,16 @@ function resolveApiBase() {
     }
 
     const host = window.location.hostname;
-    if (!host || host === "localhost" || host === "127.0.0.1") {
+
+    // Local development
+    if (
+        host === "localhost" ||
+        host === "127.0.0.1"
+    ) {
         return "http://127.0.0.1:8000/api";
     }
-    if (host === "192.168.50.1") {
-        return "http://192.168.50.1:8000/api";
-    }
+
+    // Production
     return `${window.location.origin}/api`;
 }
 
@@ -536,7 +540,7 @@ ${p.full_name || '—'}`;
                 state.allQuestions = data.results || data;
                 renderQuestions();
             } catch {
-                document.getElementById('qaContainer').innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.56 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg><h3>Server Offline</h3><p>Start the Django server and reload.</p></div>`;
+                document.getElementById('qaContainer').innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.56 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg><h3>Server Offline</h3></div>`;
             }
         }
 
@@ -613,7 +617,7 @@ ${p.full_name || '—'}`;
                 state.cvBuilders = data.results || data;
                 renderCVBuilders();
             } catch {
-                container.innerHTML = `<div class="empty-state compact"><svg viewBox="0 0 24 24"><line x1="1" y1="1" x2="23" y2="23"/><circle cx="12" cy="12" r="10"/></svg><h3>Builders unavailable</h3><p>Start the Django server and refresh.</p></div>`;
+                container.innerHTML = `<div class="empty-state compact"><svg viewBox="0 0 24 24"><line x1="1" y1="1" x2="23" y2="23"/><circle cx="12" cy="12" r="10"/></svg><h3>Builders unavailable</h3></div>`;
             }
         }
 
@@ -675,11 +679,13 @@ ${p.full_name || '—'}`;
         document.getElementById('submitForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             await submitQuestion();
+            e.closest('form').reset();
         });
 
         document.getElementById('builderSubmitForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             await submitCVBuilder();
+            e.closest('form').reset();
         });
 
         async function submitQuestion() {
@@ -728,6 +734,7 @@ ${p.full_name || '—'}`;
                     document.getElementById('submitForm').classList.add('hidden');
                     document.getElementById('submitSuccess').classList.remove('hidden');
                     showToast('success', 'Question Submitted', 'It will be reviewed before publishing.');
+                    resetSubmitForm();
                 } else {
                     // Show field-level errors if DRF returns them
                     const errorMsg = typeof json === 'object'
@@ -806,6 +813,7 @@ ${p.full_name || '—'}`;
                     document.getElementById('builderSubmitForm').classList.add('hidden');
                     document.getElementById('builderSubmitSuccess').classList.remove('hidden');
                     showToast('success', 'Builder Submitted', 'It will be reviewed before publishing.');
+                    resetCVBuilderForm()
                 } else {
                     const errorMsg = typeof json === 'object'
                         ? Object.entries(json).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`).join(' | ')

@@ -1,18 +1,121 @@
-# Python-generated files
+# ─────────────────────────────
+# Python
+# ─────────────────────────────
 __pycache__/
-*.py[oc]
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
 build/
 dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
 wheels/
-*.egg-info
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Virtual environments
-.venv
+# ─────────────────────────────
+# Virtual Environments
+# ─────────────────────────────
+venv/
+.venv/
+env/
+ENV/
 
-# Local runtime data
+# ─────────────────────────────
+# Django
+# ─────────────────────────────
 db.sqlite3
+db.sqlite3-journal
+
 media/
 staticfiles/
 
-# Local configuration
+# Django logs
+*.log
+
+# Collected static cache
+static/CACHE/
+
+# ─────────────────────────────
+# Environment Variables
+# ─────────────────────────────
 .env
+.env.*
+!.env.example
+
+# ─────────────────────────────
+# IDE / Editors
+# ─────────────────────────────
+.vscode/
+.idea/
+
+# Vim
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# ─────────────────────────────
+# Node / Frontend
+# ─────────────────────────────
+node_modules/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Frontend builds
+coverage/
+.next/
+.nuxt/
+.cache/
+
+# ─────────────────────────────
+# Testing
+# ─────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# ─────────────────────────────
+# Deployment
+# ─────────────────────────────
+gunicorn.pid
+
+# SSL / certificates
+*.pem
+*.key
+*.crt
+
+# ─────────────────────────────
+# OS / Temporary Files
+# ─────────────────────────────
+tmp/
+temp/
+
+# ─────────────────────────────
+# AI / Agent Tools
+# ─────────────────────────────
+.agents/
+.codex/
+
+# ─────────────────────────────
+# Misc
+# ─────────────────────────────
+*.bak
+*.old
+*.tmp

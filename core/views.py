@@ -15,7 +15,7 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAdminUser
 from django.http import HttpResponse
 from .throttles import AlertEmailRateThrottle, CVBuilderSubmitRateThrottle, QuestionSubmitRateThrottle
-
+from rest_framework.pagination import PageNumberPagination
 
 class InterviewQuestionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = InterviewQuestion.objects.filter(status="approved")
@@ -39,7 +39,6 @@ class InterviewQuestionViewSet(viewsets.ReadOnlyModelViewSet):
         serializer.is_valid(raise_exception=True)
         question = serializer.save()
 
-        # Optional: notify admin by email
         Alerts.notify_admin_of_submission(question)
 
         return Response(
