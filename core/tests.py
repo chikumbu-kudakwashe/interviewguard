@@ -1,4 +1,5 @@
 from django.core import mail
+from django.test import Client
 from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 
@@ -28,6 +29,7 @@ class AlertEmailApiTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].to, ["recruiter@example.com"])
+        self.assertEqual(mail.outbox[0].bcc, ["student@example.com"])
         self.assertEqual(mail.outbox[0].extra_headers["Reply-To"], "student@example.com")
         self.assertIn("My connection dropped", mail.outbox[0].body)
 
@@ -38,6 +40,26 @@ class AlertEmailApiTests(TestCase):
         self.assertEqual(self.client.get("/api/profiles/").status_code, 404)
         self.assertEqual(self.client.get("/api/summary/").status_code, 404)
         self.assertEqual(self.client.get("/api/summary").status_code, 404)
+
+
+class ProductionSmokeTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+
+    def test_logo_asset_is_available_at_root(self):
+        response = self.client.get("/interviewguard-logo.png")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "image/png")
+
+    def test_upload_endpoint_accepts_octet_stream_speed_test_payloads(self):
+        response = self.client.post(
+            "/api/upload/",
+            data=b"speed-test",
+            content_type="application/octet-stream",
+        )
+
+        self.assertEqual(response.status_code, 200)
 
 
 class InterviewQuestionApiTests(TestCase):
@@ -75,7 +97,12 @@ class InterviewQuestionApiTests(TestCase):
         questions = [item["question"] for item in response.json()["results"]]
         self.assertNotIn(self.pending.question, questions)
 
-    def test_submit_question_creates_pending_question(self):
+    @override_settings(
+        ADMIN_NOTIFICATION_EMAIL="alerts@example.com",
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        DEFAULT_FROM_EMAIL="tests@example.com",
+    )
+    def test_submit_question_creates_pending_question_and_emails_admin_and_submitter(self):
         response = self.client.post(
             "/api/questions/submit/",
             {
@@ -92,6 +119,9 @@ class InterviewQuestionApiTests(TestCase):
         self.assertEqual(response.status_code, 201)
         question = InterviewQuestion.objects.get(question="How do you approach safety?")
         self.assertEqual(question.status, "pending")
+        self.assertEqual(len(mail.outbox), 2)
+        self.assertEqual(mail.outbox[0].to, ["alerts@example.com"])
+        self.assertEqual(mail.outbox[1].to, ["student@example.com"])
 
     def test_health_endpoint(self):
         response = self.client.get("/api/health/")
@@ -127,7 +157,12 @@ class CVBuilderApiTests(TestCase):
         self.assertEqual(builders[0]["icon_letter"], "Z")
         self.assertNotIn(self.pending.name, [item["name"] for item in builders])
 
-    def test_submit_cv_builder_creates_pending_builder(self):
+    @override_settings(
+        ADMIN_NOTIFICATION_EMAIL="alerts@example.com",
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        DEFAULT_FROM_EMAIL="tests@example.com",
+    )
+    def test_submit_cv_builder_creates_pending_builder_and_emails_admin_and_submitter(self):
         response = self.client.post(
             "/api/cv-builders/submit/",
             {
@@ -144,6 +179,9 @@ class CVBuilderApiTests(TestCase):
         builder = CVBuilder.objects.get(name="FlowCV")
         self.assertEqual(builder.status, "pending")
         self.assertEqual(builder.submitted_by_email, "student@example.com")
+        self.assertEqual(len(mail.outbox), 2)
+        self.assertEqual(mail.outbox[0].to, ["alerts@example.com"])
+        self.assertEqual(mail.outbox[1].to, ["student@example.com"])
 
     def test_submit_cv_builder_rejects_duplicate_links(self):
         response = self.client.post(
@@ -188,6 +226,21 @@ class AdminQuestionActionTests(TestCase):
         self.submission.refresh_from_db()
         self.assertEqual(self.submission.status, "approved")
 
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        DEFAULT_FROM_EMAIL="tests@example.com",
+    )
+    def test_approve_question_emails_submitter_once(self):
+        self.submission.submitted_by_email = "student@example.com"
+        self.submission.save(update_fields=["submitted_by_email"])
+        queryset = InterviewQuestion.objects.filter(pk=self.submission.pk)
+
+        approve_questions(None, None, queryset)
+        approve_questions(None, None, queryset)
+
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ["student@example.com"])
+
 
 class AdminCVBuilderActionTests(TestCase):
     def setUp(self):
@@ -216,3 +269,18 @@ class AdminCVBuilderActionTests(TestCase):
 
         self.submission.refresh_from_db()
         self.assertEqual(self.submission.status, "approved")
+
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        DEFAULT_FROM_EMAIL="tests@example.com",
+    )
+    def test_approve_cv_builder_emails_submitter_once(self):
+        self.submission.submitted_by_email = "student@example.com"
+        self.submission.save(update_fields=["submitted_by_email"])
+        queryset = CVBuilder.objects.filter(pk=self.submission.pk)
+
+        approve_cv_builders(None, None, queryset)
+        approve_cv_builders(None, None, queryset)
+
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ["student@example.com"])

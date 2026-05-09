@@ -40,6 +40,18 @@ def env_list(name, default):
     return [item.strip() for item in items if item.strip()]
 
 
+def env_origin_list(name, default):
+    origins = []
+    for origin in env_list(name, default):
+        origin = origin.rstrip("/")
+        if "://" not in origin:
+            local_origin = origin.startswith(("localhost", "127.", "0.0.0.0", "10.", "172.", "192.168."))
+            scheme = "http" if local_origin else "https"
+            origin = f"{scheme}://{origin}"
+        origins.append(origin)
+    return origins
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
@@ -81,7 +93,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS", [
+CORS_ALLOWED_ORIGINS = env_origin_list("CORS_ALLOWED_ORIGINS", [
     "http://localhost:5050",
     "http://127.0.0.1:5050",
     "http://127.0.0.1:5500",
@@ -91,7 +103,7 @@ CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS", [
 ])
 
 
-CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS", [])
+CSRF_TRUSTED_ORIGINS = env_origin_list("CSRF_TRUSTED_ORIGINS", [])
 
 ROOT_URLCONF = 'config.urls'
 

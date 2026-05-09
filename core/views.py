@@ -1,3 +1,14 @@
+from pathlib import Path
+
+from django.conf import settings
+from django.http import FileResponse, Http404, HttpResponse
+from django.views.decorators.cache import cache_control
+from rest_framework import filters, status, viewsets
+from rest_framework.decorators import action, api_view, parser_classes, throttle_classes
+from rest_framework.parsers import BaseParser, FormParser, JSONParser, MultiPartParser
+from rest_framework.permissions import AllowAny, IsAdminUser
+from rest_framework.response import Response
+
 from .models import CVBuilder, InterviewQuestion
 from .serializers import (
     AlertEmailSerializer,
@@ -6,16 +17,36 @@ from .serializers import (
     InterviewQuestionSerializer,
     InterviewQuestionSubmitSerializer,
 )
-from rest_framework import viewsets, filters
-from rest_framework.decorators import action, api_view
-from rest_framework.decorators import throttle_classes
 from .services import Alerts
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import AllowAny, IsAdminUser
-from django.http import HttpResponse
 from .throttles import AlertEmailRateThrottle, CVBuilderSubmitRateThrottle, QuestionSubmitRateThrottle
-from rest_framework.pagination import PageNumberPagination
+
+
+class OctetStreamParser(BaseParser):
+    media_type = "application/octet-stream"
+
+    def parse(self, stream, media_type=None, parser_context=None):
+        return {}
+
+
+FRONTEND_ASSETS = {
+    "interviewguard-logo.png": ("interviewguard.png", "image/png"),
+    "interviewguard-logo.ico": ("interviewguard-logo.ico", "image/x-icon"),
+}
+
+
+@cache_control(public=True, max_age=60 * 60 * 24)
+def frontend_asset(request, asset_name):
+    asset = FRONTEND_ASSETS.get(asset_name)
+    if not asset:
+        raise Http404("Asset not found.")
+
+    filename, content_type = asset
+    path = Path(settings.BASE_DIR) / "frontend" / filename
+    if not path.exists():
+        raise Http404("Asset not found.")
+
+    return FileResponse(path.open("rb"), content_type=content_type)
+
 
 class InterviewQuestionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = InterviewQuestion.objects.filter(status="approved")
@@ -40,6 +71,7 @@ class InterviewQuestionViewSet(viewsets.ReadOnlyModelViewSet):
         question = serializer.save()
 
         Alerts.notify_admin_of_submission(question)
+        Alerts.notify_submitter_of_submission(question)
 
         return Response(
             {
@@ -77,6 +109,7 @@ class CVBuilderViewSet(viewsets.ReadOnlyModelViewSet):
         builder = serializer.save()
 
         Alerts.notify_admin_of_cv_builder_submission(builder)
+        Alerts.notify_submitter_of_cv_builder_submission(builder)
 
         return Response(
             {
@@ -133,5 +166,6 @@ def download(request):
         return HttpResponse(status=400)
 
 @api_view(["POST"])
+@parser_classes([JSONParser, FormParser, MultiPartParser, OctetStreamParser])
 def upload(request):
     return Response({"status": "ok"}, status=status.HTTP_200_OK)

@@ -624,17 +624,17 @@
 
                     <div class="form-row">
                       <label for="sub-tags">Tags <span class="optional">(optional, comma-separated)</span></label>
-                      <input type="text" id="sub-tags" placeholder="e.g. Django, REST, OOP">
+                      <input type="text" id="sub-tags" maxlength="255" placeholder="e.g. Django, REST, OOP">
                     </div>
 
                     <div class="form-row">
                       <label for="sub-name">Your Name <span class="optional">(optional)</span></label>
-                      <input type="text" id="sub-name" placeholder="e.g. Tarisai Moyo">
+                      <input type="text" id="sub-name" maxlength="255" placeholder="e.g. Tarisai Moyo">
                     </div>
 
                     <div class="form-row">
                       <label for="sub-email">Your Email <span class="optional">(optional)</span></label>
-                      <input type="email" id="sub-email" placeholder="We'll notify you when it's approved">
+                      <input type="email" id="sub-email" maxlength="254" placeholder="We'll notify you when it's approved">
                     </div>
 
                     <button type="submit" id="submitBtn">Submit Question</button>
@@ -800,23 +800,23 @@
                     <form id="builderSubmitForm" novalidate>
                         <div class="form-row">
                             <label for="builder-name">Builder Name *</label>
-                            <input type="text" id="builder-name" placeholder="e.g. FlowCV" required>
+                            <input type="text" id="builder-name" maxlength="120" placeholder="e.g. FlowCV" required>
                         </div>
                         <div class="form-row">
                             <label for="builder-description">Short Description *</label>
-                            <textarea id="builder-description" rows="3" placeholder="Briefly describe why this builder is useful…" required></textarea>
+                            <textarea id="builder-description" rows="3" maxlength="240" placeholder="Briefly describe why this builder is useful…" required></textarea>
                         </div>
                         <div class="form-row">
                             <label for="builder-link">Link *</label>
-                            <input type="url" id="builder-link" placeholder="https://example.com" required>
+                            <input type="url" id="builder-link" maxlength="500" placeholder="https://example.com" required>
                         </div>
                         <div class="form-row">
                             <label for="builder-submitter-name">Your Name <span class="optional">(optional)</span></label>
-                            <input type="text" id="builder-submitter-name" placeholder="e.g. Tarisai Moyo">
+                            <input type="text" id="builder-submitter-name" maxlength="255" placeholder="e.g. Tarisai Moyo">
                         </div>
                         <div class="form-row">
                             <label for="builder-submitter-email">Your Email <span class="optional">(optional)</span></label>
-                            <input type="email" id="builder-submitter-email" placeholder="We'll notify you when it's approved">
+                            <input type="email" id="builder-submitter-email" maxlength="254" placeholder="We'll notify you when it's approved">
                         </div>
                         <button type="submit" id="builderSubmitBtn">Submit CV Builder</button>
                     </form>
@@ -916,7 +916,7 @@
         
                 <div class="section-label">Why It Exists</div>
                 <div class="card">
-                    <p class="text-sm text-muted" style="line-height:1.75">
+                    <p class="text-sm text-muted about-copy">
                         Many students lose interview confidence because of poor network conditions, limited preparation,
                         or uncertainty about what employers expect. InterviewGuard was created to reduce that pressure
                         by giving users practical tools before, during, and after the interview process.
@@ -967,7 +967,7 @@
                             <div class="sp-sm"></div>
                 
                             <a href="mailto:interviewguard@vachikumbu.com"
-                                style="font-size:13px;font-weight:600;color:var(--brand);text-decoration:none">
+                                class="about-contact-link support-link">
                                 interviewguard@vachikumbu.com
                             </a>
                         </div>
@@ -991,7 +991,7 @@
                             <div class="sp-sm"></div>
                 
                             <a href="mailto:kudakwashe@vachikumbu.com"
-                                style="font-size:13px;font-weight:600;color:var(--amber);text-decoration:none">
+                                class="about-contact-link tech-link">
                                 kudakwashe@vachikumbu.com
                             </a>
                         </div>
@@ -1023,7 +1023,7 @@
                 <div class="section-label">Platform Version</div>
                 
                 <div class="card">
-                    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+                    <div class="about-version-row">
                 
                         <div>
                             <div style="font-size:13px;color:var(--ink-lt)">

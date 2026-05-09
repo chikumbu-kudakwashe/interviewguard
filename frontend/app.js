@@ -678,14 +678,14 @@ ${p.full_name || '—'}`;
         // ── Question Submission ────────────────────────────────────────
         document.getElementById('submitForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            await submitQuestion();
-            e.closest('form').reset();
+            const submitted = await submitQuestion();
+            if (submitted) e.currentTarget.reset();
         });
 
         document.getElementById('builderSubmitForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            await submitCVBuilder();
-            e.closest('form').reset();
+            const submitted = await submitCVBuilder();
+            if (submitted) e.currentTarget.reset();
         });
 
         async function submitQuestion() {
@@ -706,19 +706,20 @@ ${p.full_name || '—'}`;
             // Client-side validation
             if (!data.faculty) {
                 showToast('error', 'Missing Field', 'Please select a faculty.');
-                return;
+                return false;
             }
             if (!data.question) {
                 showToast('error', 'Missing Field', 'Please enter the interview question.');
-                return;
+                return false;
             }
             if (!data.answer) {
                 showToast('error', 'Missing Field', 'Please provide a model answer.');
-                return;
+                return false;
             }
 
             btn.disabled = true;
             btn.textContent = 'Submitting…';
+            let submitted = false;
 
             try {
                 const res = await fetch(`${BASE}/questions/submit/`, {
@@ -734,7 +735,7 @@ ${p.full_name || '—'}`;
                     document.getElementById('submitForm').classList.add('hidden');
                     document.getElementById('submitSuccess').classList.remove('hidden');
                     showToast('success', 'Question Submitted', 'It will be reviewed before publishing.');
-                    resetSubmitForm();
+                    submitted = true;
                 } else {
                     // Show field-level errors if DRF returns them
                     const errorMsg = typeof json === 'object'
@@ -748,6 +749,7 @@ ${p.full_name || '—'}`;
 
             btn.disabled = false;
             btn.textContent = 'Submit Question';
+            return submitted;
         }
 
         function resetSubmitForm() {
@@ -784,22 +786,23 @@ ${p.full_name || '—'}`;
 
             if (!data.name) {
                 showToast('error', 'Missing Field', 'Please enter the builder name.');
-                return;
+                return false;
             }
             if (data.short_description.length < 10) {
                 showToast('error', 'Missing Field', 'Please add a short useful description.');
-                return;
+                return false;
             }
             try {
                 const url = new URL(data.link);
                 if (!['http:', 'https:'].includes(url.protocol)) throw new Error();
             } catch {
                 showToast('error', 'Invalid Link', 'Enter a full URL starting with http:// or https://.');
-                return;
+                return false;
             }
 
             btn.disabled = true;
             btn.textContent = 'Submitting…';
+            let submitted = false;
 
             try {
                 const res = await fetch(`${BASE}/cv-builders/submit/`, {
@@ -813,7 +816,7 @@ ${p.full_name || '—'}`;
                     document.getElementById('builderSubmitForm').classList.add('hidden');
                     document.getElementById('builderSubmitSuccess').classList.remove('hidden');
                     showToast('success', 'Builder Submitted', 'It will be reviewed before publishing.');
-                    resetCVBuilderForm()
+                    submitted = true;
                 } else {
                     const errorMsg = typeof json === 'object'
                         ? Object.entries(json).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`).join(' | ')
@@ -826,6 +829,7 @@ ${p.full_name || '—'}`;
 
             btn.disabled = false;
             btn.textContent = 'Submit CV Builder';
+            return submitted;
         }
 
         function resetCVBuilderForm() {

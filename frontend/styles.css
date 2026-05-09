@@ -355,6 +355,8 @@ a {
     bottom: 0;
     left: 0;
     right: 0;
+    width: 100vw;
+    max-width: 100vw;
     height: var(--nav-h);
     background: rgba(245, 244, 240, .96);
     backdrop-filter: blur(14px);
@@ -362,10 +364,11 @@ a {
     z-index: 200;
     display: flex;
     align-items: stretch;
+    overflow: hidden;
 }
 
 .nav-item {
-    flex: 1;
+    flex: 1 1 0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -378,6 +381,8 @@ a {
     background: none;
     padding: 8px 4px 10px;
     position: relative;
+    min-width: 0;
+    width: 0;
 }
 
 .nav-item.active {
@@ -410,14 +415,83 @@ a {
     font-size: 10px;
     font-weight: 600;
     letter-spacing: .04em;
-    text-transform: uppercase
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap
+}
+
+@media(max-width:420px) {
+    .nav-item {
+        gap: 3px;
+        padding-left: 2px;
+        padding-right: 2px;
+    }
+
+    .nav-label {
+        font-size: 9px;
+    }
+}
+
+@media(min-width:800px) {
+    .bottom-nav {
+        position: fixed;
+        left: 0;
+        right: auto;
+        top: var(--bar-h);
+        bottom: 0;
+        height: auto;
+        flex-direction: column;
+        justify-content: flex-start;
+        padding: 12px 10px;
+        gap: 2px;
+        border-top: none;
+        border-right: 1px solid var(--border);
+        background: rgba(245, 244, 240, .96);
+        max-width: 200px;
+        overflow: visible;
+        width: 200px;
+    }
+
+    .nav-item {
+        border-radius: var(--r-md);
+        flex: none;
+        flex-direction: row;
+        gap: 10px;
+        justify-content: flex-start;
+        padding: 10px 12px;
+        text-align: left;
+        width: 100%;
+    }
+
+    .nav-item.active::before {
+        left: 0;
+        top: 20%;
+        bottom: 20%;
+        width: 3px;
+        height: auto;
+        right: auto;
+        border-radius: 0 3px 3px 0;
+    }
+
+    .nav-item .nav-label {
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .nav-item svg {
+        width: 18px;
+        height: 18px;
+    }
 }
 
 /* ── PAGE SYSTEM ── */
 .page {
     display: none;
     flex: 1;
-    flex-direction: column
+    flex-direction: column;
+    min-width: 0
 }
 
 .page.active {
@@ -443,7 +517,8 @@ a {
     padding: 24px 20px 32px;
     max-width: 860px;
     margin: 0 auto;
-    width: 100%
+    width: 100%;
+    min-width: 0
 }
 
 /* ── TYPOGRAPHY ── */
@@ -1713,6 +1788,125 @@ details[open] .qa-chevron {
 
     .cv-submit-cta .btn {
         width: 100%;
+    }
+}
+
+/* ── ABOUT PAGE ── */
+#page-about .page-scroll {
+    max-width: 980px;
+}
+
+#page-about .quick-card {
+    cursor: default;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+#page-about .quick-card > div:last-child {
+    min-width: 0;
+}
+
+#page-about .quick-name,
+#page-about .quick-desc {
+    overflow-wrap: anywhere;
+}
+
+#page-about .quick-card:hover {
+    border-color: var(--border);
+    box-shadow: var(--shadow-sm);
+    transform: none;
+}
+
+#page-about .about-copy {
+    line-height: 1.75;
+}
+
+#page-about .page-title,
+#page-about .page-sub,
+#page-about .hero-title,
+#page-about .hero-body {
+    max-width: 100%;
+    overflow-wrap: break-word;
+}
+
+.about-contact-link {
+    color: var(--brand);
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 600;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    text-decoration: none;
+}
+
+.about-contact-link.tech-link {
+    color: var(--yellow);
+}
+
+.about-version-row {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+}
+
+@media(max-width:640px) {
+    #page-about .page-scroll {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    #page-about .page-title {
+        font-size: 22px;
+        letter-spacing: 0;
+    }
+
+    #page-about .page-sub {
+        font-size: 13px;
+    }
+
+    #page-about .hero {
+        border-radius: 18px;
+        padding: 22px 16px;
+    }
+
+    #page-about .hero-eyebrow {
+        letter-spacing: .06em;
+        line-height: 1.35;
+    }
+
+    #page-about .hero-title {
+        font-size: 24px;
+        letter-spacing: 0;
+        line-height: 1.14;
+    }
+
+    #page-about .quick-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #page-about .quick-card {
+        align-items: flex-start;
+        flex-direction: row;
+        gap: 12px;
+        padding: 14px;
+    }
+
+    #page-about .quick-icon {
+        flex: 0 0 34px;
+        height: 34px;
+        width: 34px;
+    }
+
+    #page-about .card,
+    #page-about .tip-card {
+        border-radius: 14px;
+        padding: 14px;
+    }
+
+    .about-version-row {
+        align-items: flex-start;
+        flex-direction: column;
     }
 }
 
