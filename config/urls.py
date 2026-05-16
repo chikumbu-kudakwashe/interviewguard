@@ -6,5 +6,5 @@ urlpatterns = [
     path("interviewguard-logo.png", frontend_asset, {"asset_name": "interviewguard-logo.png"}, name="interviewguard-logo"),
     path("interviewguard-logo.ico", frontend_asset, {"asset_name": "interviewguard-logo.ico"}, name="interviewguard-favicon"),
     path('admin/', admin.site.urls),
-    path('api/', include("core.urls"))
+    path('', include("core.urls"))
 ]
